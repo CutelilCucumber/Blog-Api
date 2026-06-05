@@ -1,0 +1,53 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+enum Role {
+  GUEST
+  MEMBER
+  ADMIN
+}
+
+model User {
+  id       Int      @id @default(autoincrement())
+  username String   @unique
+  email    String   @unique
+  role     Role     @default(GUEST)
+  hash     String
+  salt     String
+  created  DateTime @default(now())
+
+  // Relation: A user can have many posts or comments
+  posts       Post[]
+  comments    Comment[] 
+}
+
+model Post {
+  id        Int       @id @default(autoincrement())
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  title     String
+  content   String?
+  published Boolean   @default(false)
+  
+  // Relation: A post can have many comments but only 1 author
+  comments  Comment[]
+  author    User    @relation(fields: [authorId], references: [id]) 
+  authorId  Int
+}
+
+model Comment {
+  id        Int      @id @default(autoincrement())
+  createdAt DateTime @default(now())
+  content   String
+  
+  // Relation: Each comment belongs to 1 post and 1 author
+  post      Post     @relation(fields: [postId], references: [id])
+  postId    Int
+  author    User    @relation(fields: [authorId], references: [id]) 
+  authorId  Int
+}
